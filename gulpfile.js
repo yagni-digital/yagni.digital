@@ -6,7 +6,7 @@ const gulp = require('gulp'),
   runSequence = require('run-sequence'),
   bootstrapBase = './node_modules/startbootstrap-stylish-portfolio',
   bootstrapFoldersToCopy = ['css', 'font-awesome', 'fonts', 'img', 'js'].map((value => `${bootstrapBase}/${value}/**`)),
-  filesToCopy = ['robots.txt', 'index.html', 'js/**'].map((value => `./staticSite/${value}`)),
+  filesToCopy = ['robots.txt', 'index.html', 'error.html', 'js/**', 'img/**'].map((value => `./staticSite/${value}`)),
   allStaticSiteFiles = bootstrapFoldersToCopy.concat(filesToCopy);
 
 gulp.task('clean', () => {
@@ -14,13 +14,14 @@ gulp.task('clean', () => {
     .pipe(clean());
 });
 
-gulp.task('move', () => {
-  return es.concat(
-    gulp.src(bootstrapFoldersToCopy, {base: bootstrapBase})
-      .pipe(gulp.dest('staticSite/dist')),
-    gulp.src(filesToCopy, {base: './staticSite'})
+gulp.task('moveBootstrap', () => {
+  return gulp.src(bootstrapFoldersToCopy, {base: bootstrapBase})
       .pipe(gulp.dest('staticSite/dist'))
-  )
+});
+
+gulp.task('moveSite', () => {
+  return gulp.src(filesToCopy, {base: './staticSite'})
+    .pipe(gulp.dest('staticSite/dist'));
 });
 
 gulp.task('sass', function () {
@@ -29,8 +30,8 @@ gulp.task('sass', function () {
     .pipe(gulp.dest('./staticSite/dist/css'));
 });
 
-gulp.task('watch', ['move', 'sass'], () => {
-  return gulp.watch(allStaticSiteFiles.concat('./staticSite/sass/**/*.scss'), ['move', 'sass']);
+gulp.task('watch', ['dist'], () => {
+  return gulp.watch(allStaticSiteFiles.concat('./staticSite/scss/**/*.scss'), ['dist']);
 });
 
 gulp.task('server', function () {
@@ -41,7 +42,7 @@ gulp.task('server', function () {
 });
 
 gulp.task('dist', (cb) => {
-  runSequence('clean', 'move', 'sass', cb)
+  runSequence('clean', 'moveBootstrap', 'moveSite', 'sass', cb)
 });
 
 gulp.task('dev', ['watch', 'server']);
